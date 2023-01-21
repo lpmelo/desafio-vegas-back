@@ -16,3 +16,10 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+.editorconfig
+.gitattributes
+.styleci.yml
+issues.yml
+pull-requests.yml
+tests.yml
+update-changelog.yml
