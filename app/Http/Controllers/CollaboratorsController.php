@@ -128,7 +128,12 @@ class CollaboratorsController extends Controller
     public function getById($id)
     {
         $collaborator = Collaborator::find($id);
-        return response()->json($collaborator);
+        if ($collaborator) {
+            return response()->json($collaborator);
+        } else {
+            abort(400, 'Não existe nenhum colaborador com o código informado!');
+        }
+
     }
 
     public function newCollaborator(Request $request)
@@ -172,44 +177,50 @@ class CollaboratorsController extends Controller
         $onSuccessMessage = "Os dados do colaborador foram atualizados com sucesso!";
         $this->validateFields($request, 'put');
         $collaborator = Collaborator::find($id);
-        if ($this->hasNewData($collaborator, $request)) {
-            try {
+        if ($collaborator) {
+            if ($this->hasNewData($collaborator, $request)) {
+                try {
 
-                $collaborator->clientName = $request->clientName;
-                $collaborator->cpf = $request->cpf;
-                $collaborator->admissionDate = $request->admissionDate;
-                $collaborator->cep = $request->cep;
-                $collaborator->uf = $request->uf;
-                $collaborator->city = $request->city;
-                $collaborator->district = $request->district;
-                $collaborator->address = $request->address;
-                $collaborator->number = $request->number;
-                $collaborator->complement = $request->complement;
-                $collaborator->occupation = $request->occupation;
+                    $collaborator->clientName = $request->clientName;
+                    $collaborator->cpf = $request->cpf;
+                    $collaborator->admissionDate = $request->admissionDate;
+                    $collaborator->cep = $request->cep;
+                    $collaborator->uf = $request->uf;
+                    $collaborator->city = $request->city;
+                    $collaborator->district = $request->district;
+                    $collaborator->address = $request->address;
+                    $collaborator->number = $request->number;
+                    $collaborator->complement = $request->complement;
+                    $collaborator->occupation = $request->occupation;
 
-                $collaborator->save();
+                    $collaborator->save();
 
-                return response()->json(['message' => $onSuccessMessage, 'data' => $request->all()]);
-            } catch (\Exception $erro) {
-                return ['message' => 'error', 'details' => $erro];
+                    return response()->json(['message' => $onSuccessMessage, 'data' => $request->all()]);
+                } catch (\Exception $erro) {
+                    return ['message' => 'error', 'details' => $erro];
+                }
+            } else {
+                abort(400, 'Não existe nenhuma atualização de dados no registro');
             }
-        } else {
-            abort(400, 'Não existe nenhuma atualização de dados no registro');
-        }
 
+        } else {
+            abort(400, 'Não existe nenhum colaborador com o código informado!');
+        }
     }
 
     public function deleteCollaborator($id)
     {
-        try {
-            $collaborator = Collaborator::find($id);
+        $collaborator = Collaborator::find($id);
+        if ($collaborator) {
+            try {
+                $collaborator->delete();
+                return response()->json(['message' => 'O colaborador foi deletado com sucesso!']);
+            } catch (\Exception $erro) {
+                return ['message' => 'error', 'details' => $erro];
+            }
 
-            $collaborator->delete();
-
-            return response()->json(['message' => 'O colaborador foi deletado com sucesso!']);
-
-        } catch (\Exception $erro) {
-            return ['message' => 'error', 'details' => $erro];
+        } else {
+            abort(400, 'Não existe nenhum colaborador com o código informado!');
         }
     }
 
