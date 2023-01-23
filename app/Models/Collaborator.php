@@ -9,7 +9,8 @@ class Collaborator extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    private int $id;
+    public $incrementing = false;
+    private string $id;
     private string $clientName;
     private string $cpf;
     private string $admissionDate;

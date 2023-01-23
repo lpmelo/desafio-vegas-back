@@ -10,6 +10,14 @@ use App\Models\Collaborator;
 class CollaboratorsController extends Controller
 {
 
+    protected function verifyIfExists($id)
+    {
+        $exists = false;
+        $collaborator = Collaborator::find($id);
+        $collaborator && $exists = true;
+        return $exists;
+    }
+
     protected function returnRequiredMessage($fieldName)
     {
         $allMessages = [
@@ -34,7 +42,7 @@ class CollaboratorsController extends Controller
     protected function validateFields($request)
     {
         $validation = $request->validate([
-            "id" => "required",
+            "id" => "required|min:36|max:36",
             "clientName" => "required",
             "cpf" => "required",
             "admissionDate" => "required",
@@ -46,18 +54,17 @@ class CollaboratorsController extends Controller
             "number" => "required",
             "occupation" => "required"
         ], [
-                "id" => $this->returnRequiredMessage("id"),
+                "id.required" => $this->returnRequiredMessage("id"),
                 "clientName.required" => $this->returnRequiredMessage("clientName"),
-                "cpf" => $this->returnRequiredMessage("cpf"),
-                "admissionDate" => $this->returnRequiredMessage("admissionDate"),
-                "cep" => $this->returnRequiredMessage("cep"),
-                "uf" => $this->returnRequiredMessage("uf"),
-                "city" => $this->returnRequiredMessage("city"),
-                "district" => $this->returnRequiredMessage("district"),
-                "address" => $this->returnRequiredMessage("address"),
-                "number" => $this->returnRequiredMessage("number"),
-                "occupation" => $this->returnRequiredMessage("occupation"),
-
+                "cpf.required" => $this->returnRequiredMessage("cpf"),
+                "admissionDate.required" => $this->returnRequiredMessage("admissionDate"),
+                "cep.required" => $this->returnRequiredMessage("cep"),
+                "uf.required" => $this->returnRequiredMessage("uf"),
+                "city.required" => $this->returnRequiredMessage("city"),
+                "district.required" => $this->returnRequiredMessage("district"),
+                "address.required" => $this->returnRequiredMessage("address"),
+                "number.required" => $this->returnRequiredMessage("number"),
+                "occupation.required" => $this->returnRequiredMessage("occupation"),
             ]);
     }
 
@@ -67,39 +74,54 @@ class CollaboratorsController extends Controller
         return response()->json($all);
     }
 
+    public function getById($id)
+    {
+        $collaborator = Collaborator::find($id);
+        return response()->json($collaborator);
+    }
+
     public function newCollaborator(Request $request)
     {
         $onSuccessMessage = "Dados inseridos com sucesso!";
         $this->validateFields($request);
 
-        try {
+        $collaboratorExists = $this->verifyIfExists($request->id);
+        if (!$collaboratorExists) {
+            try {
 
-            $collaborator = new Collaborator();
-            $collaborator->id = $request->id;
-            $collaborator->clientName = $request->clientName;
-            $collaborator->cpf = $request->cpf;
-            $collaborator->admissionDate = $request->admissionDate;
-            $collaborator->cep = $request->cep;
-            $collaborator->uf = $request->uf;
-            $collaborator->city = $request->city;
-            $collaborator->district = $request->district;
-            $collaborator->address = $request->address;
-            $collaborator->number = $request->number;
-            $collaborator->complement = $request->complement;
-            $collaborator->occupation = $request->occupation;
+                $collaborator = new Collaborator();
+                $collaborator->id = $request->id;
+                $collaborator->clientName = $request->clientName;
+                $collaborator->cpf = $request->cpf;
+                $collaborator->admissionDate = $request->admissionDate;
+                $collaborator->cep = $request->cep;
+                $collaborator->uf = $request->uf;
+                $collaborator->city = $request->city;
+                $collaborator->district = $request->district;
+                $collaborator->address = $request->address;
+                $collaborator->number = $request->number;
+                $collaborator->complement = $request->complement;
+                $collaborator->occupation = $request->occupation;
 
-            $collaborator->save();
+                $collaborator->save();
 
-            return response()->json(["message" => $onSuccessMessage]);
+                return response()->json(["message" => $onSuccessMessage]);
 
-        } catch (\Exception $erro) {
-            return ['message' => 'error', 'details' => $erro];
+            } catch (\Exception $erro) {
+                return ['message' => 'error', 'details' => $erro];
+            }
+
+        } else {
+            return abort(400, 'O colaborador já foi cadastrado!');
         }
+    }
+
+    public function editCollaborator(Request $request)
+    {
+        $onSuccessMessage = "Os dados do colaborador foram atualizados com sucesso!";
+        $this->validateFields($request);
 
 
-
-
-        return response()->json($request->all());
     }
 
 
