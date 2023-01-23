@@ -10,6 +10,33 @@ use App\Models\Collaborator;
 class CollaboratorsController extends Controller
 {
 
+    protected function hasNewData($collaborator, $request)
+    {
+        $hasNewData = false;
+
+        $dataArray = [
+            'clientName' => $request->clientName,
+            'cpf' => $request->cpf,
+            'admissionDate' => $request->admissionDate,
+            'cep' => $request->cep,
+            'uf' => $request->uf,
+            'city' => $request->city,
+            'district' => $request->district,
+            'address' => $request->address,
+            'number' => $request->number,
+            'complement' => $request->complement,
+            'occupation' => $request->occupation,
+        ];
+
+        foreach ($dataArray as $dataItem => $val) {
+            if ($collaborator->$dataItem != $val) {
+                $hasNewData = true;
+            }
+        }
+
+        return $hasNewData;
+    }
+
     protected function verifyIfExists($id)
     {
         $exists = false;
@@ -39,33 +66,57 @@ class CollaboratorsController extends Controller
         return $requiredMessage;
     }
 
-    protected function validateFields($request)
+    protected function validateFields($request, $type)
     {
-        $validation = $request->validate([
-            "id" => "required|min:36|max:36",
-            "clientName" => "required",
-            "cpf" => "required",
-            "admissionDate" => "required",
-            "cep" => "required",
-            "uf" => "required",
-            "city" => "required",
-            "district" => "required",
-            "address" => "required",
-            "number" => "required",
-            "occupation" => "required"
-        ], [
-                "id.required" => $this->returnRequiredMessage("id"),
-                "clientName.required" => $this->returnRequiredMessage("clientName"),
-                "cpf.required" => $this->returnRequiredMessage("cpf"),
-                "admissionDate.required" => $this->returnRequiredMessage("admissionDate"),
-                "cep.required" => $this->returnRequiredMessage("cep"),
-                "uf.required" => $this->returnRequiredMessage("uf"),
-                "city.required" => $this->returnRequiredMessage("city"),
-                "district.required" => $this->returnRequiredMessage("district"),
-                "address.required" => $this->returnRequiredMessage("address"),
-                "number.required" => $this->returnRequiredMessage("number"),
-                "occupation.required" => $this->returnRequiredMessage("occupation"),
-            ]);
+        $type == 'post' ? 
+            $validation = $request->validate([
+                "id" => "required|min:36|max:36",
+                "clientName" => "required",
+                "cpf" => "required",
+                "admissionDate" => "required",
+                "cep" => "required",
+                "uf" => "required",
+                "city" => "required",
+                "district" => "required",
+                "address" => "required",
+                "number" => "required",
+                "occupation" => "required"
+            ], [
+                    "id.required" => $this->returnRequiredMessage("id"),
+                    "clientName.required" => $this->returnRequiredMessage("clientName"),
+                    "cpf.required" => $this->returnRequiredMessage("cpf"),
+                    "admissionDate.required" => $this->returnRequiredMessage("admissionDate"),
+                    "cep.required" => $this->returnRequiredMessage("cep"),
+                    "uf.required" => $this->returnRequiredMessage("uf"),
+                    "city.required" => $this->returnRequiredMessage("city"),
+                    "district.required" => $this->returnRequiredMessage("district"),
+                    "address.required" => $this->returnRequiredMessage("address"),
+                    "number.required" => $this->returnRequiredMessage("number"),
+                    "occupation.required" => $this->returnRequiredMessage("occupation"),
+                ]) :
+            $validation = $request->validate([
+                "clientName" => "required",
+                "cpf" => "required",
+                "admissionDate" => "required",
+                "cep" => "required",
+                "uf" => "required",
+                "city" => "required",
+                "district" => "required",
+                "address" => "required",
+                "number" => "required",
+                "occupation" => "required"
+            ], [
+                    "clientName.required" => $this->returnRequiredMessage("clientName"),
+                    "cpf.required" => $this->returnRequiredMessage("cpf"),
+                    "admissionDate.required" => $this->returnRequiredMessage("admissionDate"),
+                    "cep.required" => $this->returnRequiredMessage("cep"),
+                    "uf.required" => $this->returnRequiredMessage("uf"),
+                    "city.required" => $this->returnRequiredMessage("city"),
+                    "district.required" => $this->returnRequiredMessage("district"),
+                    "address.required" => $this->returnRequiredMessage("address"),
+                    "number.required" => $this->returnRequiredMessage("number"),
+                    "occupation.required" => $this->returnRequiredMessage("occupation"),
+                ]);
     }
 
     public function getAll()
@@ -83,7 +134,7 @@ class CollaboratorsController extends Controller
     public function newCollaborator(Request $request)
     {
         $onSuccessMessage = "Dados inseridos com sucesso!";
-        $this->validateFields($request);
+        $this->validateFields($request, 'post');
 
         $collaboratorExists = $this->verifyIfExists($request->id);
         if (!$collaboratorExists) {
@@ -116,12 +167,50 @@ class CollaboratorsController extends Controller
         }
     }
 
-    public function editCollaborator(Request $request)
+    public function editCollaborator(Request $request, $id)
     {
         $onSuccessMessage = "Os dados do colaborador foram atualizados com sucesso!";
-        $this->validateFields($request);
+        $this->validateFields($request, 'put');
+        $collaborator = Collaborator::find($id);
+        if ($this->hasNewData($collaborator, $request)) {
+            try {
 
+                $collaborator->clientName = $request->clientName;
+                $collaborator->cpf = $request->cpf;
+                $collaborator->admissionDate = $request->admissionDate;
+                $collaborator->cep = $request->cep;
+                $collaborator->uf = $request->uf;
+                $collaborator->city = $request->city;
+                $collaborator->district = $request->district;
+                $collaborator->address = $request->address;
+                $collaborator->number = $request->number;
+                $collaborator->complement = $request->complement;
+                $collaborator->occupation = $request->occupation;
 
+                $collaborator->save();
+
+                return response()->json(['message' => $onSuccessMessage, 'data' => $request->all()]);
+            } catch (\Exception $erro) {
+                return ['message' => 'error', 'details' => $erro];
+            }
+        } else {
+            abort(400, 'Não existe nenhuma atualização de dados no registro');
+        }
+
+    }
+
+    public function deleteCollaborator($id)
+    {
+        try {
+            $collaborator = Collaborator::find($id);
+
+            $collaborator->delete();
+
+            return response()->json(['message' => 'O colaborador foi deletado com sucesso!']);
+
+        } catch (\Exception $erro) {
+            return ['message' => 'error', 'details' => $erro];
+        }
     }
 
 

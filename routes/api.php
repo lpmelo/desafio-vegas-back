@@ -12,6 +12,8 @@ Route::post('collaborators/new', [CollaboratorsController::class, "newCollaborat
 
 Route::put('collaborators/{id}', [CollaboratorsController::class, "editCollaborator"]);
 
+Route::delete('collaborators/{id}', [CollaboratorsController::class, "deleteCollaborator"]);
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
